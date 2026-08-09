@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Wagenmeister">
+<meta name="theme-color" content="#4d8f18">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Wagenmeister Privat</title>
+<style>
+:root{
+ --green:#4d8f18; --green2:#77a81d; --bg:#f3f6f1; --card:#fff; --text:#1b2317;
+ --muted:#65705f; --line:#d9e1d2; --danger:#9d2424; --soft:#edf4e8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Arial,sans-serif;color:var(--text)}
+body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+.top{
+ padding:calc(10px + env(safe-area-inset-top)) 15px 12px;
+ background:linear-gradient(135deg,var(--green),var(--green2)); color:#fff;
+ position:sticky;top:0;z-index:30; box-shadow:0 4px 14px rgba(0,0,0,.15)
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{width:74px;height:44px;object-fit:contain;border-radius:9px;background:white;padding:4px}
+.brand h1{margin:0;font-size:19px}.brand small{opacity:.9}
+main{max-width:980px;margin:auto;padding:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:13px;box-shadow:0 3px 14px rgba(0,0,0,.045)}
+h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+label{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}
+input,select,textarea{width:100%;font-size:16px;padding:11px;border:1px solid #cbd5c5;border-radius:11px;background:#fff}
+button{font:inherit;border:0;border-radius:11px;padding:11px 14px;font-weight:700}
+.primary{background:var(--green);color:#fff}.secondary{background:#e8efe3;color:#244313}.danger{background:#f8e8e8;color:var(--danger)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.bigscan{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;font-size:16px}
+.info{font-size:12px;color:var(--muted);line-height:1.45}
+.status{font-size:13px;padding:9px 10px;border-radius:10px;background:var(--soft);margin-top:9px}
+.bottomnav{
+ position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);
+ border-top:1px solid var(--line);padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+ display:grid;grid-template-columns:repeat(4,1fr);backdrop-filter:blur(12px)
+}
+.navbtn{background:transparent;color:#53604e;padding:7px 4px;font-size:11px}
+.navbtn span{display:block;font-size:21px;line-height:1.1}.navbtn.active{color:var(--green)}
+.view{display:none}.view.active{display:block}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:920px}th,td{padding:8px;border-bottom:1px solid #e3e8df;text-align:center;font-size:12px}
+th{background:#eef4e9;position:sticky;top:0}.totals{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.stat{background:var(--soft);border:1px solid #d7e4cf;border-radius:11px;padding:10px;font-size:13px}.stat b{font-size:17px;display:block;margin-top:2px}
+.dbrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #edf0ea}
+.dbrow:last-child{border-bottom:0}.dbnum{font-weight:800}.dbmeta{font-size:12px;color:var(--muted);margin-top:3px}
+.cameraPreview{width:100%;border-radius:12px;display:none;margin-top:10px;max-height:250px;object-fit:cover;border:1px solid var(--line)}
+.badge{display:inline-block;padding:4px 7px;border-radius:999px;background:#eef4e9;font-size:11px;margin-left:6px}
+@media print{
+ .top,.bottomnav,.no-print{display:none!important}
+ body{padding:0;background:white}
+ main{padding:0}.card{box-shadow:none;border:0;margin:0 0 10px;padding:0}
+ .view{display:none!important}#zug.view{display:block!important}
+}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="brand">
+   <img src="logo.jpg" alt="GELSEN-LOG">
+   <div><h1>Wagenmeister Privat</h1><small>iPhone Web-App · lokale Datenbank</small></div>
+ </div>
+</header>
+
+<main>
+<section id="zug" class="view active">
+ <div class="card">
+  <h2>Zugdaten</h2>
+  <div class="grid">
+   <div><label>Zugnummer</label><input id="trainNo" inputmode="numeric"></div>
+   <div><label>Datum</label><input id="date" type="date"></div>
+   <div><label>Von</label><input id="from"></div>
+   <div><label>Nach</label><input id="to"></div>
+  </div>
+ </div>
+
+ <div class="card no-print">
+  <h2>Wagen hinzufügen</h2>
+  <label>Wagennummer</label>
+  <input id="wagonSearch" placeholder="z. B. 37 80 7830 874-9" autocomplete="off">
+  <div class="actions">
+   <button class="primary" id="lookupBtn">Aus Datenbank übernehmen</button>
+   <button class="secondary" id="openScan">📷 Nummer fotografieren</button>
+  </div>
+  <input id="photo" type="file" accept="image/*" capture="environment" hidden>
+  <img id="preview" class="cameraPreview" alt="">
+  <div id="scanStatus" class="status" style="display:none"></div>
+ </div>
+
+ <div class="card">
+  <h2>Wagenliste <span id="countBadge" class="badge">0 Wagen</span></h2>
+  <div class="tablewrap">
+   <table>
+    <thead><tr><th>Pos</th><th>Nummer</th><th>Rads.</th><th>Länge</th><th>Tara</th><th>Ladung</th><th>Gesamt</th><th>Sohle</th><th>P</th><th>G</th><th>UN</th><th>Ziel</th><th></th></tr></thead>
+    <tbody id="trainBody"></tbody>
+   </table>
+  </div>
+  <div class="totals">
+   <div class="stat">Wagen<b id="sumCars">0</b></div>
+   <div class="stat">Radsätze<b id="sumAxles">0</b></div>
+   <div class="stat">Länge<b><span id="sumLength">0.00</span> m</b></div>
+   <div class="stat">Gesamtgewicht<b><span id="sumTotal">0.00</span> t</b></div>
+   <div class="stat">Bremsgewicht P<b><span id="sumP">0</span> t</b></div>
+   <div class="stat">Bremsgewicht G<b><span id="sumG">0</span> t</b></div>
+  </div>
+  <div class="actions no-print">
+   <button class="primary" onclick="window.print()">PDF / Drucken</button>
+   <button class="secondary" id="saveTrain">Speichern</button>
+   <button class="danger" id="clearTrain">Leeren</button>
+  </div>
+ </div>
+</section>
+
+<section id="datenbank" class="view">
+ <div class="card">
+  <h2>Kesselwagen-Datenbank</h2>
+  <input id="dbFilter" placeholder="Wagennummer suchen…">
+  <div id="dbList"></div>
+ </div>
+ <div class="card">
+  <h2>Wagen neu anlegen / bearbeiten</h2>
+  <div class="grid">
+   <div><label>Wagennummer</label><input id="dbNumber"></div>
+   <div><label>Typ/Gattung</label><input id="dbType" value="Kesselwagen"></div>
+   <div><label>Radsätze</label><input id="dbAxles" type="number" value="4"></div>
+   <div><label>Länge über Puffer (m)</label><input id="dbLength" type="number" step="0.01"></div>
+   <div><label>Tara (t)</label><input id="dbTare" type="number" step="0.01"></div>
+   <div><label>Ladungsgewicht (t)</label><input id="dbLoad" type="number" step="0.01"></div>
+   <div><label>Gesamtgewicht (t)</label><input id="dbTotal" type="number" step="0.01"></div>
+   <div><label>Bremssohle</label><input id="dbShoe" value="K"></div>
+   <div><label>Bremsgewicht P (t)</label><input id="dbP" type="number"></div>
+   <div><label>Bremsgewicht G (t)</label><input id="dbG" type="number"></div>
+   <div><label>Festhaltebremskraft (kN)</label><input id="dbHand" type="number" step="0.1"></div>
+   <div><label>UN-Nr.</label><input id="dbUN"></div>
+   <div><label>Gefahrzettel</label><input id="dbHaz"></div>
+   <div><label>Zielbahnhof</label><input id="dbDest"></div>
+   <div><label>Vmax km/h</label><input id="dbVmax" type="number" value="100"></div>
+   <div><label>Streckenklasse</label><input id="dbClass" value="D"></div>
+  </div>
+  <div class="actions"><button class="primary" id="dbSave">In Datenbank speichern</button><button class="secondary" id="dbReset">Felder leeren</button></div>
+ </div>
+</section>
+
+<section id="bremsprobe" class="view">
+ <div class="card">
+  <h2>Zugvorbereitung / Bremsprobe</h2>
+  <div class="grid">
+   <div><label>Erstes Fahrzeug</label><input id="firstCar"></div>
+   <div><label>Letztes Fahrzeug</label><input id="lastCar"></div>
+   <div><label>Schlussscheiben</label><select><option>ja</option><option>nein</option></select></div>
+   <div><label>Volle Bremsprobe</label><select><option>ja</option><option>nein</option></select></div>
+   <div><label>Gefahrgut</label><select><option>ja</option><option>nein</option></select></div>
+   <div><label>Bemerkungen</label><input></div>
+  </div>
+  <p class="info">Die Maske übernimmt Zug- und Wagendaten. Sicherheitsrelevante Freigaben oder betriebliche Regeln werden in dieser privaten Version nicht automatisch entschieden.</p>
+ </div>
+</section>
+
+<section id="einstellungen" class="view">
+ <div class="card">
+  <h2>App installieren</h2>
+  <p>In Safari auf <b>Teilen</b> → <b>Zum Home-Bildschirm</b>. Danach startet die App wie eine normale iPhone-App.</p>
+  <p class="info">Die Wagen-Datenbank und gespeicherte Züge bleiben lokal in Safari auf deinem iPhone.</p>
+ </div>
+ <div class="card">
+  <h2>Daten sichern</h2>
+  <div class="actions">
+   <button class="primary" id="exportDb">Datenbank exportieren</button>
+   <button class="secondary" id="importBtn">Datenbank importieren</button>
+   <input id="importFile" type="file" accept=".json,application/json" hidden>
+  </div>
+ </div>
+</section>
+</main>
+
+<nav class="bottomnav no-print">
+ <button class="navbtn active" data-view="zug"><span>🚆</span>Zug</button>
+ <button class="navbtn" data-view="datenbank"><span>🛢️</span>Datenbank</button>
+ <button class="navbtn" data-view="bremsprobe"><span>🧾</span>Bremsprobe</button>
+ <button class="navbtn" data-view="einstellungen"><span>⚙️</span>Mehr</button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+let db=[], train=[];
+const $=id=>document.getElementById(id);
+const norm=s=>(s||'').replace(/\D/g,'');
+const n=v=>Number(v)||0;
+function showView(id){
+ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+ document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ $(id).classList.add('active');
+}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+function saveDB(){localStorage.setItem('wm_db_v2',JSON.stringify(db))}
+function saveTrainNow(){localStorage.setItem('wm_train_v2',JSON.stringify(train));alert('Zug lokal gespeichert.')}
+function fmt(v){return (Number(v)||0).toFixed(2)}
+function renderTrain(){
+ const tb=$('trainBody');tb.innerHTML='';
+ train.forEach((w,i)=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${i+1}</td><td>${w.number||''}</td><td>${w.axles||''}</td><td>${w.length||''}</td><td>${w.tare||''}</td><td>${w.load||''}</td><td>${w.total||''}</td><td>${w.brakeShoe||''}</td><td>${w.brakeP||0}</td><td>${w.brakeG||0}</td><td>${w.un||''}</td><td>${w.destination||''}</td><td class="no-print"><button class="danger" onclick="removeTrain(${i})">×</button></td>`;
+  tb.appendChild(tr);
+ });
+ const sum=k=>train.reduce((a,w)=>a+n(w[k]),0);
+ $('sumCars').textContent=train.length;$('sumAxles').textContent=sum('axles');$('sumLength').textContent=fmt(sum('length'));
+ $('sumTotal').textContent=fmt(sum('total'));$('sumP').textContent=sum('brakeP');$('sumG').textContent=sum('brakeG');
+ $('countBadge').textContent=train.length+' Wagen';$('firstCar').value=train[0]?.number||'';$('lastCar').value=train.at(-1)?.number||'';
+}
+function renderDB(){
+ const q=norm($('dbFilter').value);$('dbList').innerHTML='';
+ db.filter(w=>!q||norm(w.number).includes(q)).forEach((w)=>{
+  const idx=db.indexOf(w),row=document.createElement('div');row.className='dbrow';
+  row.innerHTML=`<div><div class="dbnum">${w.number}</div><div class="dbmeta">${w.type||'Kesselwagen'} · ${w.axles||''} Rads. · ${w.length||''} m · ${w.total||''} t · P ${w.brakeP||0} / G ${w.brakeG||0}</div></div>
+  <div><button class="secondary" onclick="useDB(${idx})">+ Zug</button> <button class="secondary" onclick="editDB(${idx})">Bearb.</button></div>`;
+  $('dbList').appendChild(row);
+ });
+}
+function removeTrain(i){train.splice(i,1);renderTrain()}
+function useDB(i){train.push({...db[i]});renderTrain();showView('zug')}
+function editDB(i){
+ const w=db[i];showView('datenbank');
+ const map={dbNumber:'number',dbType:'type',dbAxles:'axles',dbLength:'length',dbTare:'tare',dbLoad:'load',dbTotal:'total',dbShoe:'brakeShoe',dbP:'brakeP',dbG:'brakeG',dbHand:'handBrake',dbUN:'un',dbHaz:'hazard',dbDest:'destination',dbVmax:'vmax',dbClass:'trackClass'};
+ Object.entries(map).forEach(([id,k])=>$(id).value=w[k]??'');
+}
+$('lookupBtn').onclick=()=>{
+ const q=norm($('wagonSearch').value),w=db.find(x=>norm(x.number)===q);
+ if(!w){alert('Wagen noch nicht in der Datenbank. Lege ihn einmal an, danach reicht künftig die Nummer.');showView('datenbank');$('dbNumber').value=$('wagonSearch').value;return}
+ train.push({...w});renderTrain();$('wagonSearch').value='';
+};
+$('openScan').onclick=()=>$('photo').click();
+$('photo').onchange=async e=>{
+ const f=e.target.files?.[0];if(!f)return;
+ $('preview').src=URL.createObjectURL(f);$('preview').style.display='block';
+ $('scanStatus').style.display='block';$('scanStatus').textContent='Foto aufgenommen. Nummer wird erkannt …';
+ try{
+   if(!window.Tesseract) throw new Error('OCR nicht geladen');
+   const r=await Tesseract.recognize(f,'eng',{logger:m=>{if(m.status==='recognizing text')$('scanStatus').textContent='Erkennung '+Math.round((m.progress||0)*100)+' %';}});
+   const digits=(r.data.text||'').match(/(?:\d[\s-]?){10,12}/g)||[];
+   let best=digits.map(norm).find(x=>x.length>=11&&x.length<=12);
+   if(best){
+     let s=best.slice(0,2)+' '+best.slice(2,4)+' '+best.slice(4,8)+' '+best.slice(8);
+     $('wagonSearch').value=s;$('scanStatus').textContent='Gefunden: '+s+' – bitte kurz prüfen.';
+   } else $('scanStatus').textContent='Nummer nicht sicher erkannt. Bitte manuell eingeben.';
+ }catch(err){$('scanStatus').textContent='Automatische Erkennung nicht verfügbar. Nummer bitte manuell eingeben.'}
+};
+$('dbFilter').oninput=renderDB;
+$('dbSave').onclick=()=>{
+ const w={number:$('dbNumber').value.trim(),type:$('dbType').value.trim(),axles:n($('dbAxles').value),length:n($('dbLength').value),tare:n($('dbTare').value),load:n($('dbLoad').value),total:n($('dbTotal').value),brakeShoe:$('dbShoe').value.trim(),brakeP:n($('dbP').value),brakeG:n($('dbG').value),handBrake:n($('dbHand').value),un:$('dbUN').value.trim(),hazard:$('dbHaz').value.trim(),destination:$('dbDest').value.trim(),vmax:n($('dbVmax').value),trackClass:$('dbClass').value.trim()};
+ if(!w.number){alert('Bitte Wagennummer eingeben.');return}
+ const i=db.findIndex(x=>norm(x.number)===norm(w.number));if(i>=0)db[i]=w;else db.push(w);saveDB();renderDB();alert('Wagen gespeichert.');
+};
+$('dbReset').onclick=()=>['dbNumber','dbLength','dbTare','dbLoad','dbTotal','dbP','dbG','dbHand','dbUN','dbHaz','dbDest'].forEach(id=>$(id).value='');
+$('saveTrain').onclick=saveTrainNow;
+$('clearTrain').onclick=()=>{if(confirm('Wagenliste wirklich leeren?')){train=[];renderTrain()}};
+$('exportDb').onclick=()=>{
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='kesselwagen-datenbank.json';a.click();URL.revokeObjectURL(a.href);
+};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{
+ const f=e.target.files?.[0];if(!f)return;
+ try{const d=JSON.parse(await f.text());if(!Array.isArray(d))throw 0;db=d;saveDB();renderDB();alert('Datenbank importiert.')}catch{alert('Datei konnte nicht importiert werden.')}
+};
+(async()=>{
+ const d=new Date();$('date').value=d.toISOString().slice(0,10);
+ try{db=JSON.parse(localStorage.getItem('wm_db_v2')||'null')||await (await fetch('wagons.json')).json()}catch{db=[]}
+ try{train=JSON.parse(localStorage.getItem('wm_train_v2')||'[]')}catch{train=[]}
+ renderDB();renderTrain();if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
