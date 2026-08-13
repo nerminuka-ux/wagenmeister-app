@@ -1,25 +1,20 @@
 {
-  "name": "Wagenmeister Privat",
+  "name": "GELSENLOG Wagenmeister V3",
   "short_name": "Wagenmeister",
-  "description": "Private Wagenlisten- und Kesselwagen-App",
   "start_url": "./index.html",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f4f7f2",
-  "theme_color": "#4d8f18",
+  "background_color": "#f5f0e6",
+  "theme_color": "#123f3e",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
