@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#123f3e">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Wagenmeister V3 – Formulare</title>
+<title>Wagenmeister V3</title>
 <style>
 :root{
  --p:#123f3e;--p2:#0b3231;--bg:#f5f0e6;--card:#fffdf8;--line:#d9d3c8;
@@ -324,7 +324,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
    <button class="btn primary" onclick="printView('bremszettel')">Bremszettel drucken</button>
    <button class="btn primary" onclick="printView('wu')">WU / ZP Protokoll drucken</button>
    <button class="btn primary" onclick="printView('meldezettel')">Meldezettel drucken</button>
-   <button class="btn secondary" onclick="printView('dokumente')">Alle 3 Dokumente drucken</button>
+   <button class="btn primary" onclick="printView('abstellzettel')">Abstellzettel drucken</button>
+   <button class="btn secondary" onclick="printView('dokumente')">Alle 4 Dokumente drucken</button>
   </div>
  </div>
 </section>
@@ -336,7 +337,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
 
 <section id="mehr" class="view">
  <div class="card"><div class="title"><div class="n">1</div><h2>Automatische Datenübernahme</h2></div>
-  <p class="note">Zugnummer, Datum, von/nach, Ersteller, Wagenanzahl, Achsen, Zuggewicht, Zuglänge sowie erstes und letztes Fahrzeug werden automatisch in Wagenliste, Bremszettel, WU/ZP-Protokoll und Meldezettel übernommen.</p>
+  <p class="note">Zugnummer, Datum, von/nach, Ersteller, Wagenanzahl, Achsen, Zuggewicht, Zuglänge sowie erstes und letztes Fahrzeug werden automatisch in Wagenliste, Bremszettel, WU/ZP-Protokoll, Meldezettel und Abstellzettel übernommen.</p>
   <p class="note"><b>Datum:</b> automatisch auf heute, aber änderbar. <b>Uhrzeit:</b> immer manuell.</p>
  </div>
 </section>
@@ -352,13 +353,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-/*
-  Arbeitsstand 13.08.2026:
-  - Bremslogik bleibt aktiv.
-  - Wagenliste bleibt die vereinbarte Grundlage.
-  - Bremszettel, WU/ZP-Protokoll und Meldezettel sind getrennte Druckdokumente
-    und werden anhand der Original-Excel-Vorlage weitergeführt.
-*/
 let db=[],train=[],state='beladen';
 const $=x=>document.getElementById(x), norm=s=>(s||'').replace(/\D/g,''), n=v=>Number(v)||0;
 
@@ -1392,7 +1386,7 @@ function buildBremszettelExcel(){
   <tr><td class="center">27</td><td>Im Wagenzug sind ausschließlich Fahrzeuge mit Kennbuchstaben a</td><td class="center">nein / ja</td></tr>
   <tr><th rowspan="2" class="left">Besondere<br>Angaben<br>für Güterzüge</th><td class="center">31</td><td>Im Wagenzug sind Fahrzeuge mit gefährlichen Gütern</td><td class="center">${danger?'ja':'nein'} / ${danger?'nein':'ja'}</td><td colspan="2"></td></tr>
   <tr><td class="center">32</td><td>ep-Bremse an allen Fahrzeugen im Wagenzug wirksam</td><td class="center">nein / ja</td><td colspan="2"></td></tr>
-  <tr><th colspan="3" class="left">Bremszettel ausgefertigt:</th><td colspan="3" class="bold">${esc($('createdBy').value)} &nbsp;&nbsp; ${esc(deDate())} &nbsp;&nbsp; ${esc($('time').value)}</td></tr>
+  <tr><th colspan="3" class="left">Bremszettel ausgefertigt:</th><td colspan="3" class="bold">${esc($('createdBy').value)}</td></tr>
  </table>
  <div style="width:185mm;margin:2mm auto;font-size:8px;text-align:right">*) Weisung der Betriebsleitung einholen</div></div>`;
 }
@@ -1402,7 +1396,7 @@ function buildWUExcel(){
  const rows=Array.from({length:8},()=>`<tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>`).join('');
  return `<div class="page">
  <table class="xl wu">
-  <tr><td colspan="6" class="center bold" style="height:18mm;background:#92d050;font-size:20px;letter-spacing:.4px">GELSENLOG</td></tr>
+  <tr><td colspan="6" style="height:18mm;background:#92d050"></td></tr>
   <tr><td colspan="6" class="center small">Gelsen-Log, Am Stadthafen 45, 45881 Gelsenkirchen, Tel.: 0209 - 9541850</td></tr>
   <tr><td colspan="6" class="wuhead">WU / ZP Protokoll</td></tr>
   <tr><td>Zugnummer :</td><td class="center bold">${esc($('trainNo').value)}</td><td>Datum:</td><td class="green center bold">${esc(deDate())}</td><td>Name:</td><td class="center bold">${esc($('createdBy').value)}</td></tr>
@@ -1433,18 +1427,8 @@ function buildWUExcel(){
  </table></div>`;
 }
 
-function buildMeldeExcel(){
+function buildAbstellExcel(){
  const first=last4(train[0]?.number), last=last4(train.at(-1)?.number);
- const taskRows=[
-  ['1. ordnungsgemäßer Kuppelzustand geprüft','mCoupling'],
-  ['2. wagentechnische Behandlung Stufe 4 durchgeführt','mTechnical'],
-  ['3. volle Bremsprobe durchgeführt','mFullBrake'],
-  ['4. Schlusssignal angebracht','mEndSignal'],
-  ['5. Nummer der Beförderungsanordnung(en) dem Fahrdienstleiter mitgeteilt','mOrderNotified'],
-  ['6. Triebfahrzeug(e) gekuppelt','mLocoCoupled'],
-  ['7. Sicherung gegen unbeabsichtigtes Bewegen aufgehoben','mSecuringRemoved'],
-  ['8. vereinfachte Bremsprobe durchgeführt','mSimpleBrake']
- ].map(([t,id])=>`<tr><td>${t}</td><td></td><td colspan="2" class="${cVal(id)?'green':''} center">${activityLine(cVal(id))}</td></tr>`).join('');
  const parkRows=Array.from({length:9},()=>`<tr><td></td><td></td><td></td><td colspan="4"></td></tr>`).join('');
  return `<div class="page"><div class="meldeWrap">
  <table class="xl melde">
@@ -1455,14 +1439,28 @@ function buildMeldeExcel(){
   <tr><td colspan="2"></td><td colspan="3" class="center tiny">Datum</td><td class="center tiny">Uhrzeit</td><td></td></tr>
   <tr><td colspan="2" class="bold">Gewicht/Achsen</td><td class="center bold">${sumField('total').toFixed(0)}</td><td class="center bold">${sumField('axles')}</td><td class="bold">Erstellt</td><td colspan="2" class="center">${esc($('createdBy').value)}</td></tr>
   <tr><td colspan="2"></td><td class="center tiny">Tonnen</td><td class="center tiny">Achsen</td><td></td><td colspan="2" class="center tiny">Name (Druckschrift)</td></tr>
-  <tr><th colspan="7" class="big">Erstes Fahrzeug / Letztes Fahrzeug <span style="font-size:9px;font-weight:400">(jeweils vier Endziffern)</span></th></tr>
-  <tr><td colspan="7" class="center big" style="letter-spacing:8px">${esc(first)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${esc(last)}</td></tr>
+  <tr><th colspan="3" class="big">Erstes Fahrzeug <span style="font-size:9px;font-weight:400">(vier Endziffern)</span></th><th colspan="4" class="big">Letztes Fahrzeug <span style="font-size:9px;font-weight:400">(vier Endziffern)</span></th></tr>
+  <tr><td class="center big">${first[0]||''}</td><td class="center big">${first[1]||''}</td><td class="center big">${first[2]||''}</td><td class="center big">${first[3]||''}</td><td class="center big">${last[0]||''}</td><td class="center big">${last[1]||''}</td><td class="center big">${last[2]||''}${last[3]||''}</td></tr>
   <tr><th colspan="7" class="left section">Angaben zur Sicherung &nbsp;&nbsp; <span style="font-weight:400">(zutreffendes ankreuzen)</span></th></tr>
   <tr><td colspan="7" class="center">${xBox(cVal('parkAir'))} Sicherung nur mit Druckluftbremse</td></tr>
   <tr><td colspan="7" class="center">${xBox(cVal('parkLoco'))} Sicherung nur mit Triebfahrzeug</td></tr>
   <tr><th colspan="2">Hemmschuhe<br>Radvorleger</th><th>Feststell-<br>bremsen</th><th>Lastwechsel</th><th colspan="3">Fahrzeugnummer (vier Endziffern)</th></tr>
   ${parkRows}
- </table>
+ </table></div></div>`;
+}
+
+function buildMeldeExcel(){
+ const taskRows=[
+  ['1. ordnungsgemäßer Kuppelzustand geprüft','mCoupling'],
+  ['2. wagentechnische Behandlung Stufe 4 durchgeführt','mTechnical'],
+  ['3. volle Bremsprobe durchgeführt','mFullBrake'],
+  ['4. Schlusssignal angebracht','mEndSignal'],
+  ['5. Nummer der Beförderungsanordnung(en) dem Fahrdienstleiter mitgeteilt','mOrderNotified'],
+  ['6. Triebfahrzeug(e) gekuppelt','mLocoCoupled'],
+  ['7. Sicherung gegen unbeabsichtigtes Bewegen aufgehoben','mSecuringRemoved'],
+  ['8. vereinfachte Bremsprobe durchgeführt','mSimpleBrake']
+ ].map(([t,id])=>`<tr><td>${t}</td><td></td><td colspan="2" class="${cVal(id)?'green':''} center">${activityLine(cVal(id))}</td></tr>`).join('');
+ return `<div class="page"><div class="meldeWrap">
  <table class="xl melde">
   <tr><th colspan="4" class="titlebig left nob">Meldezettel Zugvorbereitung für Zug</th></tr>
   <tr><td colspan="2" class="center">${esc($('trainNo').value)}<div class="tiny">Zugnummer</div></td><td class="center nob">am</td><td class="green center bold">${esc(deDate())}<div class="tiny">Datum des Verkehrstages</div></td></tr>
@@ -1487,7 +1485,8 @@ function buildPrintableDocument(id){
  else if(id==='bremszettel'){body=buildBremszettelExcel();title='Bremszettel';}
  else if(id==='wu'){body=buildWUExcel();title='WU / ZP Protokoll';}
  else if(id==='meldezettel'){body=buildMeldeExcel();title='Meldezettel';}
- else if(id==='dokumente'){body=buildBremszettelExcel()+buildWUExcel()+buildMeldeExcel();title='GELSEN-LOG Dokumente';}
+ else if(id==='abstellzettel'){body=buildAbstellExcel();title='Abstellzettel';}
+ else if(id==='dokumente'){body=buildBremszettelExcel()+buildWUExcel()+buildMeldeExcel()+buildAbstellExcel();title='GELSEN-LOG Dokumente';}
  else return '';
  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${excelBaseCss('landscape')}</style></head><body>${body}</body></html>`;
 }
