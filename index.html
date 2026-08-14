@@ -109,6 +109,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
 /* Wagenliste V3.1 – feste Spaltenzuordnung, kompakte Technikspalten */
 .wl-print-head{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;gap:12px;margin:4px 0 10px;font-weight:800}.wl-print-head .mid{text-align:center}.wl-print-head img{max-width:240px;max-height:68px;object-fit:contain}.wl-print-head .side{line-height:1.7}.wl-print-head .right{text-align:right}.wl-title{font-size:18px;font-weight:900;margin-top:2px}.sheet.wagenliste-fixed{min-width:1380px;table-layout:fixed;font-weight:800}.sheet.wagenliste-fixed th,.sheet.wagenliste-fixed td{font-weight:800;white-space:normal;padding:4px 3px;line-height:1.15}.sheet.wagenliste-fixed col.c-pos{width:42px}.sheet.wagenliste-fixed col.c-num{width:168px}.sheet.wagenliste-fixed col.c-ax{width:68px}.sheet.wagenliste-fixed col.c-len{width:78px}.sheet.wagenliste-fixed col.c-load{width:86px}.sheet.wagenliste-fixed col.c-total{width:88px}.sheet.wagenliste-fixed col.c-shoe{width:74px}.sheet.wagenliste-fixed col.c-bp{width:82px}.sheet.wagenliste-fixed col.c-bg{width:82px}.sheet.wagenliste-fixed col.c-eff{width:64px}.sheet.wagenliste-fixed col.c-hbr{width:72px}.sheet.wagenliste-fixed col.c-rid{width:64px}.sheet.wagenliste-fixed col.c-un{width:62px}.sheet.wagenliste-fixed col.c-vmax{width:66px}.sheet.wagenliste-fixed col.c-route{width:66px}.sheet.wagenliste-fixed col.c-remarks{width:210px}.sheet.wagenliste-fixed td.remarks{text-align:left;white-space:normal}.sheet.wagenliste-fixed td.num{white-space:nowrap}
 @media print{.wl-print-head{display:grid!important}.sheet.wagenliste-fixed{min-width:0!important;width:100%!important;table-layout:fixed!important;font-size:6.2px!important}.sheet.wagenliste-fixed th,.sheet.wagenliste-fixed td{padding:1.5px 1px!important}.sheet.wagenliste-fixed col.c-remarks{width:15%!important}.sheet.wagenliste-fixed col.c-num{width:12%!important}}
+
+/* Stabile Dokumentansicht direkt in der App */
+#docModal{position:fixed;inset:0;z-index:100000;background:#eef0ef;display:none;flex-direction:column}
+#docModal.open{display:flex}
+#docModalBar{height:64px;flex:0 0 64px;background:#fff;border-bottom:1px solid #d6dad8;display:flex;align-items:center;justify-content:space-between;padding:8px 12px calc(8px + env(safe-area-inset-top));box-sizing:content-box;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+#docModalTitle{font-weight:800;font-size:17px;color:#173d37;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px}
+#docModalClose{border:0;background:#173d37;color:#fff;border-radius:14px;min-width:112px;height:46px;font-weight:800;font-size:16px}
+#docModalViewport{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px 8px 30px;display:block}
+#docModalStage{position:relative;margin:0 auto}
+#docModalStage .page{margin:0!important;box-shadow:0 2px 14px rgba(0,0,0,.16)!important;background:#fff!important}
+body.doc-modal-open{overflow:hidden!important}
 </style>
 </head>
 <body>
@@ -232,7 +243,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
     <tfoot><tr><th colspan="2">Summe</th><th id="wlAx">0</th><th id="wlLen">0</th><th id="wlLoad">0</th><th id="wlTotal">0</th><th colspan="10"></th></tr></tfoot>
    </table>
   </div>
-  <div class="actions no-print"><button class="btn primary" onclick="createOriginalExcel('Wagenliste')">📊 Original-Excel erstellen</button><button class="btn secondary" onclick="printView('wagenliste')">Schnellansicht / PDF</button></div>
+  <div class="actions no-print"><button class="btn primary" onclick="createOriginalExcel('Wagenliste')">📊 Original-Excel erstellen</button><button class="btn secondary" onclick="openDocumentView('wagenliste')">👁 Wagenliste ansehen</button></div>
  </div>
 </section>
 
@@ -331,7 +342,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
    <button class="btn primary" onclick="createOriginalExcel('Wagenliste')">📊 Komplette Original-Excel erstellen</button>
    <button class="btn secondary" onclick="openDocumentView('wagenliste')">👁 Wagenliste ansehen</button>
   </div>
-  <div id="excelStatus" class="status" style="display:none;margin-top:10px"></div>
+  <div id="excelStatus" class="status" style="display:none;margin-top:10px"></div><p class="note">Die Schaltflächen „Ansehen“ öffnen das Originalformular jetzt direkt in der App – ohne iPhone-Druckvorschau, URL, Datum oder Seitenfuß.</p>
  </div>
 </section>
 
@@ -347,6 +358,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var
  </div>
 </section>
 </main>
+
+
+<div id="docModal" aria-hidden="true">
+ <div id="docModalBar">
+  <div id="docModalTitle">Dokument</div>
+  <button id="docModalClose" type="button" onclick="closeDocumentView()">✕ Schließen</button>
+ </div>
+ <div id="docModalViewport"><div id="docModalStage"></div></div>
+</div>
 
 <nav class="bottom no-print">
  <button class="nav active" data-view="zug"><span>🚆</span>Zug</button>
@@ -1640,19 +1660,41 @@ function closeDocumentView(){
 }
 window.openDocumentView=id=>{
  updateDerived();
- const html=buildPrintableDocument(id);
- if(!html)return alert('Dokument konnte nicht geöffnet werden.');
- const w=window.open('','_blank');
- if(!w){
-  const blob=new Blob([html],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  window.location.href=url;
-  return;
- }
- w.document.open();
- w.document.write(html);
- w.document.close();
+ let body='', title='Dokument';
+ if(id==='wagenliste'){body=buildWagenlisteExcel();title='Wagenliste';}
+ else if(id==='bremszettel'){body=buildBremszettelExcel();title='Bremszettel';}
+ else if(id==='wu'){body=buildWUExcel();title='WU / ZP Protokoll';}
+ else if(id==='meldezettel'){body=buildMeldeExcel();title='Meldezettel';}
+ else if(id==='abstellzettel'){body=buildAbstellExcel();title='Abstellzettel';}
+ else return alert('Dokument konnte nicht geöffnet werden.');
+ const modal=$('docModal'), stage=$('docModalStage'), viewport=$('docModalViewport');
+ $('docModalTitle').textContent=title;
+ stage.innerHTML=body;
+ modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+ document.body.classList.add('doc-modal-open');
+ viewport.scrollTop=0; viewport.scrollLeft=0;
+ requestAnimationFrame(()=>requestAnimationFrame(fitDocumentModal));
 };
+function fitDocumentModal(){
+ const viewport=$('docModalViewport'), stage=$('docModalStage');
+ if(!viewport||!stage)return;
+ const page=stage.querySelector('.page'); if(!page)return;
+ page.style.transform='none'; page.style.transformOrigin='top left';
+ stage.style.width='auto';stage.style.height='auto';
+ const naturalW=page.offsetWidth, naturalH=page.offsetHeight;
+ const available=Math.max(280,viewport.clientWidth-4);
+ const scale=Math.min(1,available/naturalW);
+ page.style.transform='scale('+scale+')';
+ stage.style.width=(naturalW*scale)+'px';
+ stage.style.height=(naturalH*scale)+'px';
+}
+function closeDocumentView(){
+ const modal=$('docModal'); if(!modal)return;
+ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true');
+ document.body.classList.remove('doc-modal-open');
+ $('docModalStage').innerHTML='';
+}
+window.addEventListener('resize',()=>{if($('docModal')?.classList.contains('open'))fitDocumentModal();});
 
 window.printView=id=>{
  updateDerived();
