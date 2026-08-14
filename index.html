@@ -1287,9 +1287,10 @@ function excelBaseCss(orientation='portrait'){
  .blankrow td{height:8mm}
 
  .exact-page{padding:0!important;display:flex;align-items:center;justify-content:center;overflow:hidden!important}
- .exact-sheet{position:relative;background-repeat:no-repeat;background-position:center;background-size:100% 100%;overflow:hidden}
- .exact-portrait{width:190mm;height:268mm}
- .exact-landscape{width:277mm;height:177mm}
+ .exact-sheet{position:relative;background-repeat:no-repeat;background-position:center;background-size:100% 100%;overflow:hidden;flex:0 0 auto}
+ .exact-brems{width:190mm;height:230.40mm}
+ .exact-wu{width:190mm;height:254.68mm}
+ .exact-melde{width:277mm;height:176.78mm}
  @media screen{
   html,body{width:100%;overflow-x:hidden;background:#f3efe7}
   body{padding:8px 0 24px}
@@ -1298,8 +1299,8 @@ function excelBaseCss(orientation='portrait'){
  @media print{
   html,body{width:auto!important;overflow:visible!important;background:#fff}
   .page{box-shadow:none!important;margin:0!important;zoom:1!important;transform:none!important;overflow:visible!important}
-  .portrait-page{width:190mm!important;height:277mm!important;padding:0!important}
-  .landscape-page{width:277mm!important;height:190mm!important;padding:0!important}
+  .portrait-page{width:200mm!important;height:287mm!important;padding:0!important}
+  .landscape-page{width:287mm!important;height:200mm!important;padding:0!important}
  }
  @page{size:A4 ${orientation};margin:5mm}
  `;
@@ -1383,7 +1384,7 @@ const EXACT_LOGO="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAYEBQY
 function exactBox(x,y,w,h,text,bg='white',fs='3mm',weight='700',align='center',extra=''){
  return `<div style="position:absolute;left:${x}%;top:${y}%;width:${w}%;height:${h}%;background:${bg};display:flex;align-items:center;justify-content:${align==='left'?'flex-start':align==='right'?'flex-end':'center'};padding:0 .8mm;font-size:${fs};font-weight:${weight};line-height:1.05;text-align:${align};white-space:nowrap;overflow:hidden;${extra}">${text??''}</div>`;
 }
-function exactCheck(x,y,checked,w=2.9,h=2.4){return exactBox(x,y,w,h,checked?'X':'','white','3.4mm','700','center','border:0;')}
+function exactCheck(x,y,checked,w=2.9,h=2.4){return exactBox(x,y,w,h,checked?'X':'','white','3.4mm','700','center','border:1px solid #111;padding:0;')}
 function buildBremszettelExcel(){
  const weight=sumField('total'), brake=brakeSum(), ax=sumField('axles'), len=sumField('length');
  const last=train.length?train[train.length-1].number:'';
@@ -1405,7 +1406,7 @@ function buildBremszettelExcel(){
  o+=exactBox(52.7,35.8,10.5,2.0,'0','white','2.7mm');
  o+=exactBox(52.7,37.8,10.5,2.0,len?len.toFixed(0):'','#eeeeee','2.7mm');
  o+=exactBox(22.0,97.15,14.0,1.9,esc($('createdBy').value),'#eeeeee','2.6mm','700','left');
- return `<div class="page portrait-page exact-page"><div class="exact-sheet exact-portrait" style="background-image:url('${EXACT_BREMS_BG}')">${o}</div></div>`;
+ return `<div class="page portrait-page exact-page"><div class="exact-sheet exact-brems" style="background-image:url('${EXACT_BREMS_BG}')">${o}</div></div>`;
 }
 
 function buildWUExcel(){
@@ -1432,7 +1433,7 @@ function buildWUExcel(){
  o+=exactBox(18.7,45.2,68.0,2.0,esc(pVal('specialNotes')||dangerText()),'white','2.7mm','700','left');
  o+=exactBox(13.0,97.0,17.5,2.0,esc($('createdBy').value),'white','2.6mm');
  o+=exactBox(69.5,96.0,17.5,2.0,esc(deDate()),'white','2.6mm');
- return `<div class="page portrait-page exact-page"><div class="exact-sheet exact-portrait" style="background-image:url('${EXACT_WU_BG}')">${o}</div></div>`;
+ return `<div class="page portrait-page exact-page"><div class="exact-sheet exact-wu" style="background-image:url('${EXACT_WU_BG}')">${o}</div></div>`;
 }
 
 function buildAbstellExcel(){
@@ -1467,7 +1468,7 @@ function buildMeldeExcel(){
  o+=exactBox(75.3,15.0,20.0,2.0,esc(train.at(-1)?.number||''),'white','2.2mm');
  const tasks=[['mCoupling',27.7],['mTechnical',30.0],['mFullBrake',32.4],['mEndSignal',34.8],['mOrderNotified',39.1],['mLocoCoupled',43.6],['mSecuringRemoved',45.9],['mSimpleBrake',48.3]];
  tasks.forEach(([id,y])=>{if(cVal(id))o+=exactBox(75.1,y,18.0,2.0,`${esc(deDate())} - ${esc(pVal('time',''))} - ${esc(pVal('createdBy'))}`,'#e2efd8','2.2mm');});
- return `<div class="page landscape-page exact-page"><div class="exact-sheet exact-landscape" style="background-image:url('${EXACT_MELDE_BG}')">${o}</div></div>`;
+ return `<div class="page landscape-page exact-page"><div class="exact-sheet exact-melde" style="background-image:url('${EXACT_MELDE_BG}')">${o}</div></div>`;
 }
 
 function buildPrintableDocument(id){
@@ -1478,7 +1479,7 @@ function buildPrintableDocument(id){
  else if(id==='wu'){body=buildWUExcel();title='WU / ZP Protokoll';}
  else if(id==='meldezettel'){body=buildMeldeExcel();title='Meldezettel';orientation='landscape';}
  else if(id==='abstellzettel'){body=buildAbstellExcel();title='Abstellzettel';}
- else if(id==='dokumente'){body=buildBremszettelExcel()+buildWUExcel()+buildMeldeExcel()+buildAbstellExcel();title='GELSEN-LOG Dokumente';orientation='portrait';}
+ else if(id==='dokumente'){body=buildBremszettelExcel()+buildWUExcel()+buildMeldeExcel();title='GELSEN-LOG Dokumente';orientation='portrait';}
  else return '';
  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>${title}</title><style>${excelBaseCss(orientation)}</style></head><body>${body}<script>
 (function(){
