@@ -1445,8 +1445,9 @@ function excelBaseCss(orientation='portrait'){
  .exact-brems{width:200mm;height:282.67mm}
  .exact-wu{width:200mm;height:282.67mm}
  .exact-melde{width:287mm;height:202.94mm}
- .exact-image-page{width:auto!important;height:auto!important;padding:0!important;overflow:visible!important;background:#fff!important}
- .exact-image-wrap{position:relative;width:100%;line-height:0;background:#fff}
+ .exact-image-page{width:100%!important;height:auto!important;padding:0!important;overflow:hidden!important;background:#fff!important;display:block!important}
+ .exact-crop{position:relative;width:100%;overflow:hidden;background:#fff}
+ .exact-image-wrap{position:absolute;left:0;top:0;line-height:0;background:#fff}
  .exact-template-img{display:block;width:100%;height:auto;max-width:none}
  .exact-image-wrap>div{line-height:1.05}
  @media screen{
@@ -1542,9 +1543,11 @@ const EXACT_LOGO="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAYEBQY
 function exactBox(x,y,w,h,text,bg='transparent',fs='3mm',weight='700',align='center',extra=''){
  return `<div style="position:absolute;left:${x}%;top:${y}%;width:${w}%;height:${h}%;background:${bg};display:flex;align-items:center;justify-content:${align==='left'?'flex-start':align==='right'?'flex-end':'center'};padding:0 .5mm;font-size:${fs};font-weight:${weight};line-height:1.05;text-align:${align};white-space:nowrap;overflow:hidden;box-sizing:border-box;${extra}">${text??''}</div>`;
 }
-function exactImagePage(src,overlays,orientation='portrait'){
+function exactImagePage(src,overlays,orientation='portrait',cropX=1,cropY=1,aspect=null){
  const cls=orientation==='landscape'?'landscape-page':'portrait-page';
- return `<div class="page ${cls} exact-page exact-image-page"><div class="exact-image-wrap"><img class="exact-template-img" src="${src}" alt="Originalformular">${overlays}</div></div>`;
+ const ar=aspect||((orientation==='landscape')?1.4142:0.7071);
+ const innerPct=(100/cropX).toFixed(4);
+ return `<div class="page ${cls} exact-page exact-image-page"><div class="exact-crop" style="aspect-ratio:${ar};"><div class="exact-image-wrap" style="width:${innerPct}%;"><img class="exact-template-img" src="${src}" alt="Originalformular">${overlays}</div></div></div>`;
 }
 function exactCheck(x,y,checked,w=2.9,h=2.4){return exactBox(x,y,w,h,checked?'X':'','transparent','3.4mm','700','center','padding:0;')}
 function buildBremszettelExcel(){
@@ -1568,7 +1571,7 @@ function buildBremszettelExcel(){
  o+=exactBox(49.7,41.1,11.3,1.9,'0','transparent','2.7mm');
  o+=exactBox(49.7,43.3,11.3,1.9,len?len.toFixed(0):'','transparent','2.7mm');
  o+=exactBox(21.0,94.0,18.0,1.8,esc($('createdBy').value),'transparent','2.5mm','700','left');
- return exactImagePage(EXACT_BREMS_BG,o,'portrait');
+ return exactImagePage(EXACT_BREMS_BG,o,'portrait',0.66,0.97,0.873);
 }
 
 function buildWUExcel(){
@@ -1594,7 +1597,7 @@ function buildWUExcel(){
  o+=exactBox(22.7,51.0,70.0,2.2,esc(pVal('specialNotes')||dangerText()),'transparent','2.6mm','700','left');
  o+=exactBox(2.0,93.2,32.0,2.0,esc($('createdBy').value),'transparent','2.4mm');
  o+=exactBox(76.0,93.2,20.0,2.0,esc(deDate()),'transparent','2.4mm');
- return exactImagePage(EXACT_WU_BG,o,'portrait');
+ return exactImagePage(EXACT_WU_BG,o,'portrait',0.64,0.79,0.762);
 }
 
 function buildAbstellExcel(){
@@ -1626,7 +1629,7 @@ function buildMeldeExcel(){
  o+=exactBox(53.7,20.6,17.0,2.1,esc(train[0]?.number||''),'transparent','2.4mm');
  o+=exactBox(75.1,20.6,17.0,2.1,esc(train.at(-1)?.number||''),'transparent','2.4mm');
  o+=exactBox(69.0,27.0,22.0,2.0,esc($('createdBy').value),'transparent','2.4mm');
- return exactImagePage(EXACT_MELDE_BG,o,'landscape');
+ return exactImagePage(EXACT_MELDE_BG,o,'landscape',1.0,0.87,1.570);
 }
 
 function buildPrintableDocument(id){
@@ -1640,8 +1643,8 @@ function buildPrintableDocument(id){
  else if(id==='dokumente'){body=buildBremszettelExcel()+buildWUExcel()+buildMeldeExcel();title='GELSEN-LOG Dokumente';orientation='portrait';}
  else return '';
  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>${title}</title><style>${excelBaseCss(orientation)}
-.doc-closebar{position:sticky;top:0;z-index:99999;display:flex;justify-content:flex-end;align-items:center;padding:10px 10px 8px;background:rgba(255,255,255,.96);border-bottom:1px solid #d9ddda;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.doc-closebtn{appearance:none;border:0;border-radius:12px;background:#173d37;color:#fff;font:700 16px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;padding:10px 15px;min-width:112px;min-height:44px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.doc-closebar{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:2147483647;display:block;background:transparent}
+.doc-closebtn{appearance:none;border:2px solid #fff;border-radius:50%;background:#173d37;color:#fff;font:900 26px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;width:54px;height:54px;padding:0;box-shadow:0 3px 12px rgba(0,0,0,.28)}
 .doc-closebtn:active{transform:scale(.98)}
 @media print{.doc-closebar{display:none!important}}
 </style></head><body><div class="doc-closebar no-print"><button class="doc-closebtn" type="button" onclick="closeDocumentView()">✕ Schließen</button></div>${body}<script>
@@ -1693,7 +1696,9 @@ function fitDocumentModal(){
  if(page.classList.contains('exact-image-page')){
    page.style.transform='none';
    page.style.width='100%';
+   page.style.maxWidth='100%';
    stage.style.width='100%';
+   stage.style.maxWidth='100%';
    stage.style.height='auto';
    return;
  }
