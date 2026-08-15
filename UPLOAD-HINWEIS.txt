@@ -1,0 +1,15 @@
+WAGENMEISTER V3 – ORIGINAL-EXCEL
+
+Diese 4 Dateien in das bestehende GitHub-Repository wagenmeister-v3 hochladen/ersetzen:
+
+1. index.html                       -> ersetzen
+2. service-worker.js               -> ersetzen
+3. wagons.json                     -> ersetzen bzw. vorhandene Version beibehalten
+4. wagenmeister-original.xlsx      -> NEU hinzufügen
+
+Die vorhandenen Dateien logo.jpg, manifest.webmanifest und icon-*.png bleiben unverändert.
+
+Neu in der App:
+Dokumente -> „Original-Excel erstellen“
+
+Die App verwendet wagenmeister-original.xlsx als echte Vorlage und befüllt die Originalzellen.

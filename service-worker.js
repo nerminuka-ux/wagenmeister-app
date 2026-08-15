@@ -1,5 +1,5 @@
-const CACHE = 'wagenmeister-original-excel-20260815-v1';
-const STATIC = ['./manifest.webmanifest','./logo.jpg','./icon-180.png','./icon-192.png','./icon-512.png','./wagons.json'];
+const CACHE = 'wagenmeister-original-excel-20260815-v2';
+const STATIC = ['./manifest.webmanifest','./logo.jpg','./icon-180.png','./icon-192.png','./icon-512.png','./wagons.json','./wagenmeister-original.xlsx'];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
